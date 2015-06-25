@@ -64,12 +64,7 @@ static std::unique_ptr<Factory<ID>> createFactoryT(const std::string& name)
   return std::make_unique<Factory<ID>>(name);
 }
 
-template<size_t x> class HASH
-{
-  enum {y = ((x >> 16) ^ x) * 0x45d9f3b, z = ((y >> 16) ^ y) * 0x45d9f3b};
-  public:
-  enum {value = (z >> 16) ^ z};
-};
+template<size_t x> struct HASH { enum {y = ((x >> 16) ^ x) * 0x45d9f3b, z = ((y >> 16) ^ y) * 0x45d9f3b, value = (z >> 16) ^ z}; };
 #define createFactory(name) createFactoryT<HASH<__COUNTER__>::value>(name)
 
 template<typename Widget>
