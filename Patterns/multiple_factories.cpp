@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
   auto set1     = makeCutlerySet(*widget1A, *widget1B, *widget1C);
   cerr << set1->name() << endl;
 
+  cerr << " ---- \n";
 
-#if 1
   std::vector<std::string> types{"flowers","cars","buildings"};
   for (auto type : types)
   {
@@ -103,7 +103,8 @@ int main(int argc, char *argv[])
     auto set     = makeCutlerySet(*widgetA, *widgetB, *widgetC);
     cerr << set->name() << endl;
   }
-#endif
+
+  cerr << " ---- \n";
 
   auto factory2 = createFactory("squares");
   auto widget2A = factory2->makeWidget("spoon");
