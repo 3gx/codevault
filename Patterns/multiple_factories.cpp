@@ -79,18 +79,18 @@ std::unique_ptr<Widget> makeCutlerySet(const Widget& a, const Widget& b, const W
 }
 
 template<typename Widget1, typename Widget2, typename Widget3>
-auto makeCutlerySetMix(const Widget1& a, const Widget2& b, const Widget3& c)
+auto makeCutlerySet(const Widget1& a, const Widget2& b, const Widget3& c)
 {
   using namespace std;
   constexpr auto newID = Widget1::ID + Widget2::ID + Widget3::ID;
   using NewWidget = WidgetT<HASH<newID>::value>;
   const auto set = tie(a,b,c);
   if (drand48() < 0.3)
-    return std::make_unique<NewWidget>("cutlery set mix: "+get<0>(set).name()+" with "+get<1>(set).name() +" with "+get<2>(set).name());
+    return std::make_unique<NewWidget>("cutlery mix: "+get<0>(set).name()+" with "+get<1>(set).name() +" with "+get<2>(set).name());
   else if (drand48() < 0.6)
-    return std::make_unique<NewWidget>("cutlery set mix: "+get<1>(set).name()+" with "+get<2>(set).name() +" with "+get<0>(set).name());
+    return std::make_unique<NewWidget>("cutlery mix: "+get<1>(set).name()+" with "+get<2>(set).name() +" with "+get<0>(set).name());
   else
-    return std::make_unique<NewWidget>("cutlery set mix: "+get<2>(set).name()+" with "+get<0>(set).name() +" with "+get<1>(set).name());
+    return std::make_unique<NewWidget>("cutlery mix: "+get<2>(set).name()+" with "+get<0>(set).name() +" with "+get<1>(set).name());
 }
 
 int main(int argc, char *argv[])
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
     auto widgetA = factory->makeWidget("spoon");
     auto widgetB = factory->makeWidget("fork");
     auto widgetC = factory->makeWidget("knife");
-    auto set_mix = makeCutlerySetMix(*widgetA, *widget1B, *widget2C);
-    cerr << set_mix->name() << endl;
+    auto mix = makeCutlerySet(*widgetA, *widget1B, *widget2C);
+    cerr << mix->name() << endl;
   }
 
   cerr << " ---- \n";
