@@ -62,15 +62,19 @@ class Factory
     const std::string& factoryName() const { return factory_name_; }
 };
 
-constexpr size_t hash2(size_t x) { return       ((x >> 16) ^ x);             }
-constexpr size_t hash1(size_t x) { return hash2(((x >> 16) ^ x) * 0x45d9f3b);}
-constexpr size_t hash (size_t x) { return hash1(((x >> 16) ^ x) * 0x45d9f3b);}
 template<size_t ID>
-static std::unique_ptr<Factory<hash(ID)>> createFactoryT(const std::string& name)
+static std::unique_ptr<Factory<ID>> createFactoryT(const std::string& name)
 {
-  return std::make_unique<Factory<hash(ID)>>(name);
+  return std::make_unique<Factory<ID>>(name);
 }
-#define createFactory(name) createFactoryT<__COUNTER__>(name)
+
+template<size_t x> class HASH
+{
+  enum {y = ((x >> 16) ^ x) * 0x45d9f3b, z = ((y >> 16) ^ y) * 0x45d9f3b};
+  public:
+  enum {value = (z >> 16) ^ z};
+};
+#define createFactory(name) createFactoryT<HASH<__COUNTER__>::value>(name)
 
 int main(int argc, char *argv[])
 {
