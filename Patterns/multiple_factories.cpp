@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <vector>
 #include "parse_arguments.h"
 
 template<size_t ID>
@@ -84,19 +85,27 @@ int main(int argc, char *argv[])
 #endif
 
   auto factory1 = createFactory("circles");
-#if 1
-  for (int i = 0; i < 10; i++)
-    auto factory2 = createFactory("squares");
-#endif
-
-  auto factory2 = createFactory("squares");
   auto widget1A = factory1->makeWidget("spoon");
   auto widget1B = factory1->makeWidget("fork");
   auto widget1C = factory1->makeWidget("knife");
   auto set1     = makeCutlerySet(*widget1A, *widget1B, *widget1C);
   cerr << set1->name() << endl;
 
- 
+
+#if 1
+  std::vector<std::string> types{"flowers","cars","buildings"};
+  for (auto type : types)
+  {
+    auto factory = createFactory(type);
+    auto widgetA = factory->makeWidget("spoon");
+    auto widgetB = factory->makeWidget("fork");
+    auto widgetC = factory->makeWidget("knife");
+    auto set     = makeCutlerySet(*widgetA, *widgetB, *widgetC);
+    cerr << set->name() << endl;
+  }
+#endif
+
+  auto factory2 = createFactory("squares");
   auto widget2A = factory2->makeWidget("spoon");
   auto widget2B = factory2->makeWidget("fork");
   auto widget2C = factory2->makeWidget("knife");
