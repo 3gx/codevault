@@ -11,11 +11,9 @@ class WidgetT
   public:
     WidgetT(const std::string& widget_name) : widget_name_{widget_name} 
     {
-//      std::cout << "    Widget \"" << widget_name_ << "\" ctor. \n";
     }
     ~WidgetT()  
     {
-//      std::cout << "    Widget \"" << widget_name_ << "\" dtor. \n";
     }
 
     friend std::unique_ptr<WidgetT> makeSet(const WidgetT& a, const WidgetT& b, const WidgetT &c)
@@ -29,20 +27,19 @@ template<size_t ID>
 class Factory
 {
   private:
-    std::string factory_name_;
+    const std::string factory_name_;
     using Widget = WidgetT<ID>;
   public:
-    Factory(const std::string& factory_name_) : factory_name_{factory_name_}
+    Factory(const std::string& factory_name)  : factory_name_(factory_name)
     {
+      static std::string original_name = factory_name;
       static bool firstInstance = true;
       if (!firstInstance)
-        throw std::runtime_error(std::string("\n\tFATAL: Instance of a Factory \"")+ factory_name_ + "\"" + ", with an internal unique-id <" + std::to_string(ID) + ">, is already in use!\n");
+        throw std::runtime_error(std::string("\n  FATAL: Instance of a Factory  with an unique-id <" + std::to_string(ID) + "> and name \""+original_name+"\", can't be used with a Factory \""+factory_name+"\".\n"));
       firstInstance = false;
- //     std::cout << "Factory \"" << factory_name_ << "\" ctor. \n";
     }
     ~Factory()  
     {
-  //    std::cout << "Factory \"" << factory_name_ << "\" dtor. \n";
     }
     std::unique_ptr<Widget> makeWidget(const std::string &name) const { return std::make_unique<Widget>(name+"_with_"+factory_name_); }
     const std::string& factoryName() const { return factory_name_; }
@@ -65,6 +62,9 @@ int main(int argc, char *argv[])
 #if 1
   auto factory1 = Factory<1>("circles");
   auto factory2 = Factory<2>("squares");
+#elif 1
+  auto factory1 = Factory<1>("circles");
+  auto factory2 = Factory<1>("squares");
 #else
   auto factory1 = buildFactory("circles");
   auto factory2 = buildFactory("squares");
