@@ -77,6 +77,7 @@ std::unique_ptr<Widget> makeCutlerySet(const Widget& a, const Widget& b, const W
 {
   return std::make_unique<Widget>("cutlery set: "+a.name()+" with "+b.name() +" with "+c.name());
 }
+
 template<typename Widget1, typename Widget2, typename Widget3>
 auto makeCutlerySetMix(const Widget1& a, const Widget2& b, const Widget3& c)
 {
