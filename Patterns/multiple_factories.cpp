@@ -45,7 +45,12 @@ class Factory
     const std::string& factoryName() const { return factory_name_; }
 };
 
-#define buildFactory(name) Factory<__COUNTER__>(name)
+template<size_t ID>
+static std::unique_ptr<Factory<ID>> createFactoryT(const std::string& name)
+{
+  return std::make_unique<Factory<ID>>(name);
+}
+#define createFactory(name) createFactoryT<__COUNTER__>(name)
 
 int main(int argc, char *argv[])
 {
@@ -59,27 +64,19 @@ int main(int argc, char *argv[])
   cerr << params.parse_all();
 #endif
 
-#if 1
-  auto factory1 = Factory<1>("circles");
-  auto factory2 = Factory<2>("squares");
-#elif 1
-  auto factory1 = Factory<1>("circles");
-  auto factory2 = Factory<1>("squares");
-#else
-  auto factory1 = buildFactory("circles");
-  auto factory2 = buildFactory("squares");
-#endif
+  auto factory1 = createFactory("circles");
+  auto factory2 = createFactory("squares");
 
-  auto widget1A = factory1.makeWidget("spoon");
-  auto widget1B = factory1.makeWidget("fork");
-  auto widget1C = factory1.makeWidget("knife");
+  auto widget1A = factory1->makeWidget("spoon");
+  auto widget1B = factory1->makeWidget("fork");
+  auto widget1C = factory1->makeWidget("knife");
   auto set1     = makeCutlerySet(*widget1A, *widget1B, *widget1C);
   cerr << set1->name() << endl;
 
  
-  auto widget2A = factory2.makeWidget("spoon");
-  auto widget2B = factory2.makeWidget("fork");
-  auto widget2C = factory2.makeWidget("knife");
+  auto widget2A = factory2->makeWidget("spoon");
+  auto widget2B = factory2->makeWidget("fork");
+  auto widget2C = factory2->makeWidget("knife");
   auto set2     = makeCutlerySet(*widget2A, *widget2B, *widget2C);
   cerr << set2->name() << endl;
   
