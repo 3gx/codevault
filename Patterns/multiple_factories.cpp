@@ -44,7 +44,7 @@ class Factory
     {
   //    std::cout << "Factory \"" << factory_name_ << "\" dtor. \n";
     }
-    std::unique_ptr<Widget> makeWidget(const std::string &name) const { return std::make_unique<Widget>(factory_name_+"_"+name); }
+    std::unique_ptr<Widget> makeWidget(const std::string &name) const { return std::make_unique<Widget>(name+"_with_"+factory_name_); }
     const std::string& factoryName() const { return factory_name_; }
 };
 
@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
 #endif
 
 #if 1
-  auto factory1 = Factory<1>("silverware");
-  auto factory2 = Factory<2>("bronzeware");
+  auto factory1 = Factory<1>("circles");
+  auto factory2 = Factory<2>("squares");
 #else
-  auto factory1 = buildFactory("silverware");
-  auto factory2 = buildFactory("bronzeware");
+  auto factory1 = buildFactory("circles");
+  auto factory2 = buildFactory("squares");
 #endif
 
   auto widget1A = factory1.makeWidget("spoon");
