@@ -95,6 +95,7 @@ auto makeCutlerySet(const Widget1& a, const Widget2& b, const Widget3& c)
 
 int main(int argc, char *argv[])
 {
+  srand48((size_t)argv);
   using namespace std;
 #if 0
   using namespace parse_arguments;
