@@ -4,22 +4,18 @@
 #include <vector>
 #include "parse_arguments.h"
 
-template<size_t ID>
+template<size_t ID_>
 class WidgetT
 {
   private:
     std::string widget_name_;
   public:
+    enum {ID = ID_};
     WidgetT(const std::string& widget_name) : widget_name_{widget_name} 
     {
     }
     ~WidgetT()  
     {
-    }
-
-    friend std::unique_ptr<WidgetT> makeCutlerySet(const WidgetT& a, const WidgetT& b, const WidgetT &c)
-    {
-      return std::make_unique<WidgetT>("cutlery set: "+a.widget_name_+" with "+b.widget_name_+" with "+c.widget_name_);
     }
     std::string name() const { return widget_name_; }
 };
@@ -76,6 +72,26 @@ template<size_t x> class HASH
 };
 #define createFactory(name) createFactoryT<HASH<__COUNTER__>::value>(name)
 
+template<typename Widget>
+std::unique_ptr<Widget> makeCutlerySet(const Widget& a, const Widget& b, const Widget& c)
+{
+  return std::make_unique<Widget>("cutlery set: "+a.name()+" with "+b.name() +" with "+c.name());
+}
+template<typename Widget1, typename Widget2, typename Widget3>
+auto makeCutlerySetMix(const Widget1& a, const Widget2& b, const Widget3& c)
+{
+  using namespace std;
+  constexpr auto newID = Widget1::ID + Widget2::ID + Widget3::ID;
+  using NewWidget = WidgetT<HASH<newID>::value>;
+  const auto set = tie(a,b,c);
+  if (drand48() < 0.3)
+    return std::make_unique<NewWidget>("cutlery set mix: "+get<0>(set).name()+" with "+get<1>(set).name() +" with "+get<2>(set).name());
+  else if (drand48() < 0.6)
+    return std::make_unique<NewWidget>("cutlery set mix: "+get<1>(set).name()+" with "+get<2>(set).name() +" with "+get<0>(set).name());
+  else
+    return std::make_unique<NewWidget>("cutlery set mix: "+get<2>(set).name()+" with "+get<0>(set).name() +" with "+get<1>(set).name());
+}
+
 int main(int argc, char *argv[])
 {
   using namespace std;
@@ -95,6 +111,13 @@ int main(int argc, char *argv[])
   auto set1     = makeCutlerySet(*widget1A, *widget1B, *widget1C);
   cerr << set1->name() << endl;
 
+  auto factory2 = createFactory("squares");
+  auto widget2A = factory2->makeWidget("spoon");
+  auto widget2B = factory2->makeWidget("fork");
+  auto widget2C = factory2->makeWidget("knife");
+  auto set2     = makeCutlerySet(*widget2A, *widget2B, *widget2C);
+  cerr << set2->name() << endl;
+
   cerr << " ---- \n";
 
   std::vector<std::string> types{"flowers","cars","buildings"};
@@ -104,18 +127,11 @@ int main(int argc, char *argv[])
     auto widgetA = factory->makeWidget("spoon");
     auto widgetB = factory->makeWidget("fork");
     auto widgetC = factory->makeWidget("knife");
-    auto set     = makeCutlerySet(*widgetA, *widgetB, *widgetC);
-    cerr << set->name() << endl;
+    auto set_mix = makeCutlerySetMix(*widgetA, *widget1B, *widget2C);
+    cerr << set_mix->name() << endl;
   }
 
   cerr << " ---- \n";
-
-  auto factory2 = createFactory("squares");
-  auto widget2A = factory2->makeWidget("spoon");
-  auto widget2B = factory2->makeWidget("fork");
-  auto widget2C = factory2->makeWidget("knife");
-  auto set2     = makeCutlerySet(*widget2A, *widget2B, *widget2C);
-  cerr << set2->name() << endl;
   
  
 #if 0
