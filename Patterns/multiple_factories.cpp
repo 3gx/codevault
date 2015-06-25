@@ -16,9 +16,9 @@ class WidgetT
     {
     }
 
-    friend std::unique_ptr<WidgetT> makeSet(const WidgetT& a, const WidgetT& b, const WidgetT &c)
+    friend std::unique_ptr<WidgetT> makeCutlerySet(const WidgetT& a, const WidgetT& b, const WidgetT &c)
     {
-      return std::make_unique<WidgetT>("set: "+a.widget_name_+" with "+b.widget_name_+" with "+c.widget_name_);
+      return std::make_unique<WidgetT>("cutlery set: "+a.widget_name_+" with "+b.widget_name_+" with "+c.widget_name_);
     }
     std::string name() const { return widget_name_; }
 };
@@ -73,19 +73,19 @@ int main(int argc, char *argv[])
   auto widget1A = factory1.makeWidget("spoon");
   auto widget1B = factory1.makeWidget("fork");
   auto widget1C = factory1.makeWidget("knife");
-  auto set1     = makeSet(*widget1A, *widget1B, *widget1C);
+  auto set1     = makeCutlerySet(*widget1A, *widget1B, *widget1C);
   cerr << set1->name() << endl;
 
  
   auto widget2A = factory2.makeWidget("spoon");
   auto widget2B = factory2.makeWidget("fork");
   auto widget2C = factory2.makeWidget("knife");
-  auto set2     = makeSet(*widget2A, *widget2B, *widget2C);
+  auto set2     = makeCutlerySet(*widget2A, *widget2B, *widget2C);
   cerr << set2->name() << endl;
   
  
 #if 0
-  auto set3 = makeSet(*widget1A, *widget1B, *widget2C);
+  auto set3 = makeCutlerySet(*widget1A, *widget1B, *widget2C);
   cerr << set3->name() << endl;
 #endif
 }
