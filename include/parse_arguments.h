@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <tuple>
+#include <iostream>
 
 namespace parse_arguments
 {
@@ -268,6 +269,16 @@ namespace parse_arguments
         printUsageImpl(ss,maxWidthLongName,maxWidthShortName);
         ss << endl;
         return ss.str();
+      }
+
+      std::string parse_all(int ret = -1)
+      {
+        if (!parse())
+        {
+          std::cerr << usage();
+          exit(ret);
+        }
+        return params();
       }
 
       std::string params()
