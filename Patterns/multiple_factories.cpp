@@ -27,8 +27,8 @@ class Factory
     const std::string factory_name_;
     using Widget = WidgetT<ID>;
 
-    enum {ACQUIRE=1, RELEASE=0};
-    void raii(bool acquire)
+    enum RAII {ACQUIRE=true, RELEASE=false};
+    void raii(RAII acquire)
     {
       static std::string original_name = factory_name_;
       static bool firstInstance = true;
