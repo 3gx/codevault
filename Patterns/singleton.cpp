@@ -32,14 +32,14 @@ class Singleton
 
 void print()
 {
-  auto&& s = Singleton::getInstance();
+  decltype(auto) s = Singleton::getInstance();
 
   cerr << s.getValue() << endl;
 }
 
 int main()
 {
-  auto&& s = Singleton::getInstance();
+  decltype(auto) s = Singleton::getInstance();
 
   print();
 
