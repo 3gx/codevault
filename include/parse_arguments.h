@@ -272,11 +272,11 @@ namespace parse_arguments
         return ss.str();
       }
 
-      std::string parse_all(int ret = -1)
+      std::string parse_all(int ret = -1, std::ostream& os = std::cerr)
       {
         if (!parse())
         {
-          std::cerr << usage();
+          os << usage();
           exit(ret);
         }
         return params();
