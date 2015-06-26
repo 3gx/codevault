@@ -34,9 +34,9 @@ namespace parse_arguments
   class ParamName
   {
     private:
-      const std::string description_;
-      const std::string short_name_;
-      const std::string long_name_;
+      std::string const description_;
+      std::string const short_name_;
+      std::string const long_name_;
       std::string arg_string_;
     public:
       ParamName(std::string desc, std::string nshort, std::string nlong) :
@@ -100,24 +100,25 @@ namespace parse_arguments
         auto parseImpl(std::string arg, bool flag = false) -> 
         typename std::enable_if<(I < ParamSize),bool>::type
         {
-          auto& t = std::get<I>(param_pack_);
-          auto shortParam = t.get(ParamName::SHORT_NAME);
-          auto  longParam = t.get(ParamName::LONG_NAME);
+          using namespace std;
+          auto& t = get<I>(param_pack_);
+          auto const & shortParam = t.get(ParamName::SHORT_NAME);
+          auto const & longParam = t.get(ParamName::LONG_NAME);
 
-          using value_type = typename std::remove_reference<decltype(t)>::type::value_type;
-          std::string ss_eq="=", arg1=arg;
-          if (std::is_same<value_type,bool>::value)
+          using value_type = typename tuple_element<I,ParamPack>::type::value_type; 
+          string ss_eq="=", arg1=arg;
+          if (is_same<value_type,bool>::value)
           {
             arg1 += "\\";
             ss_eq = "\\";
           }
           if (!shortParam.empty())
             flag |= getParam(arg1,
-                std::string("-")+shortParam+ss_eq,
+                string("-")+shortParam+ss_eq,
                 t.value(), t.getArgString());
           if (!longParam.empty())
             flag |= getParam(arg1, 
-                std::string("--")+longParam+ss_eq,
+                string("--")+longParam+ss_eq,
                 t.value(), t.getArgString());
           return parseImpl<I+1>(arg, flag);
         }
@@ -155,8 +156,8 @@ namespace parse_arguments
         typename std::enable_if<(I < ParamSize)>::type
         {
           using namespace std;
-          const auto t = get<I>(param_pack_);
-          using value_type = typename decltype(t)::value_type;
+          auto const & t = get<I>(param_pack_);
+          using value_type = typename tuple_element<I,ParamPack>::type::value_type; 
 
           string ss_value;
           if (!is_same<value_type,bool>::value)
@@ -203,7 +204,7 @@ namespace parse_arguments
         typename std::enable_if<(I < ParamSize)>::type
         {
           using namespace std;
-          const auto t = get<I>(param_pack_);
+          auto const & t = get<I>(param_pack_);
 
           ss << "\t";
           ss << t.get(ParamName::DESCRIPTION) << ":";
@@ -211,7 +212,7 @@ namespace parse_arguments
           while(width++ < wD+2)
             ss << " ";
           
-          using value_type = typename decltype(t)::value_type;
+          using value_type = typename tuple_element<I,ParamPack>::type::value_type; 
           string ss_value = "", ss_space=" ";
 
           if (!is_same<value_type,bool>::value && !t.get(ParamName::ARG_STRING).empty())
@@ -247,7 +248,7 @@ namespace parse_arguments
       bool parse()
       {
         using namespace std;
-        for (int i = 1; i < argc_; i++)
+        for (int i = 1; i < argc_; ++i)
           if (!parseImpl(argv_[i]))
             return false;
         return true;
@@ -259,13 +260,13 @@ namespace parse_arguments
         stringstream ss;
         ss << endl;
         ss << "Usage: " ;
-        for (int i = 0; i < argc_; i++)
+        for (int i = 0; i < argc_; ++i)
           ss << argv_[i] << " ";
         ss << endl;
         ss << endl;
         ss << "Available arguments: \n";
-        const auto maxWidthLongName  = maxWidthName(ParamName::LONG_NAME);
-        const auto maxWidthShortName = maxWidthName(ParamName::SHORT_NAME);
+        auto const maxWidthLongName  = maxWidthName(ParamName::LONG_NAME);
+        auto const maxWidthShortName = maxWidthName(ParamName::SHORT_NAME);
         printUsageImpl(ss,maxWidthLongName,maxWidthShortName);
         ss << endl;
         return ss.str();
@@ -284,12 +285,12 @@ namespace parse_arguments
       std::string params()
       {
         using namespace std;
-        const auto maxWidthArgString   = maxWidthName(ParamName::ARG_STRING);
-        const auto maxWidthDescription = maxWidthName(ParamName::DESCRIPTION);
+        auto const maxWidthArgString   = maxWidthName(ParamName::ARG_STRING);
+        auto const maxWidthDescription = maxWidthName(ParamName::DESCRIPTION);
         stringstream ss;
         ss << endl;
         ss << "Exec line: ";
-        for (int i = 0; i < argc_; i++)
+        for (int i = 0; i < argc_; ++i)
           ss << argv_[i] << " ";
         ss << endl << endl;
         ss << "Parameters: \n";
@@ -307,7 +308,7 @@ namespace parse_arguments
     {
       private:
         T &value_;
-        const T default_value_;
+        T const default_value_;
 
       public:
         using value_type = T;
@@ -318,12 +319,12 @@ namespace parse_arguments
         {}
 
         T& value() {return value_;}
-        const T& value() const {return value_;}
-        const T& default_value() const {return default_value_;}
+        T const & value() const {return value_;}
+        T const & default_value() const {return default_value_;}
     };
 
   template<typename T>
-  static Param<T> param(const char *description, T& value, const char *short_name, const char *long_name)
+  static Param<T> param(char const *description, T& value, char const *short_name, char const *long_name)
   {
     return Param<T>(description,value,short_name,long_name);
   }
