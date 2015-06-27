@@ -35,7 +35,7 @@ class Factory
       if (acquire)
       {
         if (!firstInstance)
-          throw std::runtime_error(std::string("\n  FATAL: Instance of a Factory  with an unique-id <" + std::to_string(ID) + "> and name \""+original_name+"\", can't be used with a Factory \""+factory_name_+"\".\n"));
+          throw std::runtime_error(std::string("\n  FATAL: Instance of a Factory  with an unique-id <" + std::to_string(ID) + "> and name \""+original_name+"\" is already in use and can't be used with a Factory \""+factory_name_+"\".\n"));
         original_name = factory_name_;
         firstInstance = false;
       }
