@@ -89,6 +89,7 @@ struct Hermite4T
     // Q=1 : maintain virial equlibirum
     // Q<1 : cold system (constracts)
     // Q>1 : hot system  (expands)
+#pragma omp parallel for schedule(rtune)
     for (int i = 0; i < nbody_; ++i)
     {
       ptcl_vec_[i] = Particle{
@@ -139,11 +140,13 @@ struct Hermite4T
   {
     if (no_predictor)
     {
+#pragma omp parallel for schedule(runtime)
       for (int i = 0; i < nbody_; i++)
         pred_vec_[i] = Predictor(0, ptcl_vec_[i], force_vec_[i]);
     }
 
     std::vector<Force> forces(nbody_);
+#pragma omp parallel for schedule(runtime)
 
     for (int i = 0; i < nbody_; i++)
     {
@@ -158,6 +161,7 @@ struct Hermite4T
 
   void step()
   {
+#pragma omp parallel for schedule(runtime)
     for (int i = 0; i < nbody_; ++i)
       pred_vec_[i] = Predictor(dt_, ptcl_vec_[i], force_vec_[i]);
 
@@ -175,6 +179,7 @@ struct Hermite4T
     const auto dt5 = dt4*dt * Real{1.0/4.0};
 
     Real dt_min = HUGE;
+#pragma omp parallel for schedule(runtime) reduction(min:dt_min)
     for (int i = 0; i < nbody_; ++i)
     {
       /* interpolate snap & crackle */
@@ -237,6 +242,7 @@ struct Hermite4T
   double etot()
   {
     double epot = 0, ekin = 0;
+#pragma omp parallel for reduction(+:ekin,epot)
     for (int i = 0; i < nbody_; i++)
     {
       const auto& p = ptcl_vec_[i];
@@ -303,7 +309,7 @@ int main(int argc, char *argv[])
 //      param("input filename" ,     fileName, 'f', "infile")
       );
 
-  cerr << param_pack.parse_all([](std::string s) { cerr << " --- test --- \n" << s; exit(2); });
+  cerr << param_pack.parse_all();
 #if 0
   if (!param_pack.parse())
   {
