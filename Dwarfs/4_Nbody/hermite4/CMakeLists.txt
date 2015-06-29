@@ -11,3 +11,7 @@ if (CODEVAULT_ENABLE_CUDA)
 endif()
 
 add_executable(serial serial.cpp)
+
+set_source_files_properties(openmp.cpp PROPERTIES COMPILE_FLAGS "${OpenMP_CXX_FLAGS}")
+add_executable(openmp openmp.cpp)
+set_target_properties(openmp PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")

@@ -89,7 +89,7 @@ struct Hermite4T
     // Q=1 : maintain virial equlibirum
     // Q<1 : cold system (constracts)
     // Q>1 : hot system  (expands)
-#pragma omp parallel for schedule(rtune)
+#pragma omp parallel for schedule(runtime)
     for (int i = 0; i < nbody_; ++i)
     {
       ptcl_vec_[i] = Particle{
