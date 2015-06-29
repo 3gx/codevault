@@ -272,7 +272,7 @@ namespace parse_arguments
         ss << endl;
         return ss.str();
       }
-;
+ 
       template<typename F>
         std::string parse_all(F f)
         {
