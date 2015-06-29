@@ -321,12 +321,15 @@ int main(int argc, char *argv[])
 //      param("input filename" ,     fileName, 'f', "infile")
       );
 
+  cerr << param_pack.parse_all([](std::string s) { cerr << " --- crap --- \n" << s; exit(2); });
+#if 0
   if (!param_pack.parse())
   {
     cerr << param_pack.usage();
     exit(-1);
   }
   cerr << param_pack.params();
+#endif
 
   assert(nbodies > 1);
   assert(nsteps > 0);

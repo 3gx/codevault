@@ -1,6 +1,7 @@
 #pragma once
 #include <sstream>
 #include <tuple>
+#include <functional>
 #include <iostream>
 
 namespace parse_arguments
@@ -271,16 +272,23 @@ namespace parse_arguments
         ss << endl;
         return ss.str();
       }
-
-      std::string parse_all(int ret = -1, std::ostream& os = std::cerr)
-      {
-        if (!parse())
+;
+      template<typename F>
+        std::string parse_all(F f)
         {
-          os << usage();
-          exit(ret);
+          if (!parse())
+          {
+            f(usage());
+            return std::string{};
+          }
+          return params();
         }
-        return params();
+
+      std::string parse_all()
+      {
+        return parse_all([](std::string s) { std::cerr << s; exit(-1); });
       }
+
 
       std::string params()
       {
