@@ -79,18 +79,19 @@ void bw_test(int ndata, bool seq)
           auto ptr = (char*)&x[inew-1];
           for (int kk = 0; kk < sizeof(data_type)*3; kk += 64)
             _mm_prefetch(ptr+kk, hint);
-          for (int kk = 0; kk < sizeof(data_type); kk += 64)
-            _mm_prefetch(((char*)&y[j+k])+kk,_MM_HINT_T0);
+          if (k == 1)
+            for (int kk = 0; kk < sizeof(data_type); kk += 64)
+              _mm_prefetch(((char*)&y[j+k])+kk,_MM_HINT_T0);
         }
       auto i = idx[j];
       auto im1 = max(i-1,0);
       auto ip1 = min(i+1,ndata-1);
-      auto const & xm1 = x[im1];
+      auto const & xim = x[im1];
       auto const & xi  = x[i];
-      auto const & xp1 = x[ip1];
+      auto const & xip = x[ip1];
 #pragma simd
       for (size_t k = 0; k < N; k++)
-        y[j].data[k] += xp1.data[k] - 2*xi.data[k] + xm1.data[k];
+        y[j].data[k] += -2.0*xi.data[k]+ xip.data[k] + xim.data[k];
     }
     asm("#loopEnd");
     const auto end = std::chrono::steady_clock::now();
