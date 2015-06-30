@@ -30,3 +30,4 @@
 *.swp
 build
 build_*
+CMakeFiles
