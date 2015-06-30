@@ -8,7 +8,7 @@ template<size_t N_, typename T>
 struct Data
 {
   static constexpr auto N = N_;
-  std::array<T,N> data;
+  T data[N];
   Data() {}
   Data(const T value)
   {
@@ -124,7 +124,9 @@ void bw_test(int ndata, int nelems, bool seq)
     case  4:  bw_test< 4,T>(ndata,seq); break;
     case  8:  bw_test< 8,T>(ndata,seq); break;
     case 12:  bw_test<12,T>(ndata,seq); break;
+    case 14:  bw_test<14,T>(ndata,seq); break;
     case 16:  bw_test<16,T>(ndata,seq); break;
+    case 18:  bw_test<18,T>(ndata,seq); break;
     case 20:  bw_test<20,T>(ndata,seq); break;
     case 24:  bw_test<24,T>(ndata,seq); break;
     case 28:  bw_test<28,T>(ndata,seq); break;
@@ -146,7 +148,7 @@ int main(int argc, char * argv[])
   using namespace parse_arguments;
 
   auto nelems     = 8;
-  auto ndata      = 4;
+  auto ndata      = 32;
   auto sequential = false;
   auto use_single = false;
 
