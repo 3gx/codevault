@@ -12,7 +12,7 @@ function(PrintTestCompilerStatus LANG MSG)
   endif()
 endfunction()
 
-unset(CMAKE_CXX_COMPILER_WORKS CACHE)
+unset(CMAKE_ICPC_COMPILER_WORKS CACHE)
 if (NOT CMAKE_ICPC_COMPILER_WORKS)
   PrintTestCompilerStatus("ICPC" "")
   set(test_program "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testICPCCompiler.cxx")
