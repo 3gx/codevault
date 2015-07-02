@@ -1,19 +1,35 @@
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/Languages")
 enable_language(ICPC OPTIONAL)
-#enable_language(IFORT OPTIONAL)
+enable_language(IFORT OPTIONAL)
 
-set(ICPC_FOUND False)
+set(ICPC_FOUND True)
 if (${CMAKE_ICPC_COMPILER} STREQUAL "CMAKE_ICPC_COMPILER-NOTFOUND")
+  set(ICPC_FOUND False)
 else()
+  function(icpc_source)
+    set_source_files_properties(${ARGN} PROPERTIES LANGUAGE ICPC)
+    foreach (file ${ARGN})
+      set_property(SOURCE ${file} APPEND_STRING PROPERTY COMPILE_FLAGS " -I${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_CXX_FLAGS} ")
+    endforeach()
+  endfunction()
   function(icpc_add_executable icpc_target)
     add_executable(${icpc_target} ${ARGN})
-    foreach(file ${ARGN})
-      set_source_files_properties(${file} PROPERTIES LANGUAGE ICPC)
-    endforeach()
     set_target_properties(${icpc_target} PROPERTIES LINKER_LANGUAGE ICPC)
   endfunction()
-  set(ICPC_FOUND True)
-
-  #  function(icpc_copy
 endif()
+
+set(IFORT_FOUND True)
+if (${CMAKE_IFORT_COMPILER} STREQUAL "CMAKE_IFORT_COMPILER-NOTFOUND")
+  set(IFORT_FOUND False)
+else()
+  function(ifort_source)
+    set_source_files_properties(${ARGN} PROPERTIES LANGUAGE IFORT)
+  endfunction()
+  function(ifort_add_executable ifort_target)
+    add_executable(${ifort_target} ${ARGN})
+    set_target_properties(${ifort_target} PROPERTIES LINKER_LANGUAGE IFORT)
+  endfunction()
+endif()
+
+
