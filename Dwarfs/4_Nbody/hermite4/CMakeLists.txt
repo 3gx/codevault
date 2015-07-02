@@ -22,12 +22,7 @@ if (${OPENMP_FOUND})
 endif()
 
 if (${ICPC_FOUND})
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/openmp_icc.cpp
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/openmp.cpp ${CMAKE_CURRENT_BINARY_DIR}/openmp_icc.cpp
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/openmp.cpp
-    COMMENT "Copy openmp.cpp to openmp_icc.cpp"
-    )
+  clone_source(openmp.cpp openmp_icc.cpp)
   set_property(SOURCE openmp_icc.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -openmp")
   icpc_source(openmp_icc.cpp)
   icpc_add_executable(openmp_icc openmp_icc.cpp)

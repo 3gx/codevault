@@ -3,6 +3,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/La
 enable_language(ICPC OPTIONAL)
 enable_language(IFORT OPTIONAL)
 
+find_package(Common)
+
 set(ICPC_FOUND True)
 if (${CMAKE_ICPC_COMPILER} STREQUAL "CMAKE_ICPC_COMPILER-NOTFOUND")
   set(ICPC_FOUND False)
