@@ -8,7 +8,7 @@ function(clone_source src dst)
     )
 endfunction()
 
-macro(get_options _sources _option_list _option_name)
+macro(get_sources_and_options _sources _option_list _option_name)
   set( ${_sources} )
   set( ${_option_list} )
   set( _found_options False)
