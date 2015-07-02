@@ -15,14 +15,38 @@ endfunction()
 unset(CMAKE_CXX_COMPILER_WORKS CACHE)
 if (NOT CMAKE_ICPC_COMPILER_WORKS)
   PrintTestCompilerStatus("ICPC" "")
-  file(WRITE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testICPCCompiler.cxx
+  set(test_program "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testICPCCompiler.cxx")
+  set(test_cmake "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/CMakeLists.txt")
+  file(WRITE ${test_program}
     "#ifndef __cplusplus\n"
     "# error \"The CMAKE_ICPC_COMPILER is set to a C compiler\"\n"
     "#endif\n"
     "int main(){return 0;}\n")
-  try_compile(CMAKE_ICPC_COMPILER_WORKS ${CMAKE_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testICPCCompiler.cxx
-    OUTPUT_VARIABLE __CMAKE_ICPC_COMPILER_OUTPUT)
+  FILE(WRITE ${test_cmake}
+    "
+  cmake_minimum_required(VERSION 3.0)
+  set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/Languages)
+  set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL \"\" FORCE)
+  project(test ICPC)
+  set_source_files_properties(${test_program} PROPERTIES LANGUAGE ICPC)
+  add_executable(testICPCCompiler ${test_program})
+  set_target_properties(testICPCCompiler PROPERTIES LINKER_LANGUAGE ICPC)
+    "
+    )
+
+  try_compile(CMAKE_ICPC_COMPILER_WORKS
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
+    projectName
+    OUTPUT_VARIABLE __CMAKE_ICPC_COMPILER_OUTPUT
+    )
+
+
+  #  try_compile(CMAKE_ICPC_COMPILER_WORKS ${CMAKE_BINARY_DIR}
+  #  #    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testICPCCompiler.cxx
+  #  ${test_program}
+  #  OUTPUT_VARIABLE __CMAKE_ICPC_COMPILER_OUTPUT)
+  # message("stt= ${__CMAKE_ICPC_COMPILER_OUTPUT}")
   # Move result from cache to normal variable.
   set(CMAKE_ICPC_COMPILER_WORKS ${CMAKE_ICPC_COMPILER_WORKS})
   unset(CMAKE_ICPC_COMPILER_WORKS CACHE)

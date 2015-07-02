@@ -48,9 +48,9 @@ endif()
 #    message(FATAL_ERROR "gfortran version must be at least 4.8")
 #  endif()
 
-message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
-message("CMAKE_Fortran_COMPILER_ID= ${CMAKE_Fortran_COMPILER_ID}")
-message("CMAKE_Fortran_COMPILER_NAMES= ${CMAKE_Fortran_COMPILER_NAMES}")
+#message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
+#message("CMAKE_Fortran_COMPILER_ID= ${CMAKE_Fortran_COMPILER_ID}")
+#message("CMAKE_Fortran_COMPILER_NAMES= ${CMAKE_Fortran_COMPILER_NAMES}")
 #if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 #  # gfortran
 #  set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3")
