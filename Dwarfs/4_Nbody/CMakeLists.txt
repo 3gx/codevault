@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 2.8.10 FATAL_ERROR)
-project(CodeVault)
+project(CodeVault NONE)
 
 set(CodeVault_VERSION_MAJOR 0)
 set(CodeVault_VERSION_MINOR 1)
 set(CodeVault_VERSION_PATCH 0)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
 enable_language (C)
 enable_language (CXX)
 
-include(detect_fortran_compiler)
-if (${Fortran_COMPILER_FOUND})
-  enable_language (Fortran)
-else(${Fortran_COMPILER_FOUND})
-  message(WARNING "*** Fortran is not found. Will not build Fortran examples")
-endif(${Fortran_COMPILER_FOUND})
+#include(detect_fortran_compiler)
+#if (${Fortran_COMPILER_FOUND})
+#  enable_language (Fortran)
+#else(${Fortran_COMPILER_FOUND})
+#  message(WARNING "*** Fortran is not found. Will not build Fortran examples")
+#endif(${Fortran_COMPILER_FOUND})
 
 
 # RPATH settings
