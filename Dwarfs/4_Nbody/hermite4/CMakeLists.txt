@@ -1,16 +1,17 @@
-if (CODEVAULT_ENABLE_SERIAL)
-  
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+project(Hermite4 NONE)
+
+enable_language(CXX)
+
+#include(CheckCXXCompilerFlag)
+#CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+if (NOT CMAKE_CXX11_COMPILE_FEATURES)
+  message(STATUS "-- C++11 is not supported by compiler. Ingoring \"hermite4\"  example")
+else()
+  add_definitions(${CMAKE_CXX11_STANDARD_COMPILE_OPTION})
+  add_executable(hermite4_serial hermite4_serial.cpp)
 endif()
 
-if (CODEVAULT_ENABLE_OPENMP)
-  
-endif()
-
-if (CODEVAULT_ENABLE_CUDA)
-  
-endif()
-
-#add_executable(serial serial.cpp)
 
 #if (True)
 #  add_custom_command(
@@ -35,7 +36,7 @@ endif()
 #endif()
 
 # Locate IntelCompilers if available
-find_package(IntelCompilers QUIET)
+#find_package(IntelCompilers QUIET)
 
 #if found Intel C++ compiler ,build C++ example
 #if (ICPC_FOUND)
@@ -52,48 +53,48 @@ find_package(IntelCompilers QUIET)
 
 
 # Attempt localte ISPC compiler
-find_package(ISPC)
+#find_package(ISPC)
 
 # if found, build ISPC Example
-if (ISPC_FOUND)
-  set(ispc_obj "")
-  ispc_compile(ispc_obj ispc/hermite4.ispc COMPILE_FLAGS "-O2")
-  include_directories("util")
+# if (ISPC_FOUND)
+#   set(ispc_obj "")
+#  ispc_compile(ispc_obj ispc/hermite4.ispc COMPILE_FLAGS "-O2")
+#  include_directories("util")
 
-  if (True)
-    icpc_sources(
-      ispc/omp_tasksys.cpp
-      ispc/hermite4.cpp
-      COMPILE_FLAGS "-O3 -g -openmp")
-    #  add_definitions("-fopenmp")
-    icpc_add_executable(hermite4_ispc 
-      ${ispc_obj}
-      ispc/hermite4.ispc
-      ispc/hermite4.cpp
-      ispc/omp_tasksys.cpp
-      LINK_FLAGS "-openmp")
-  else()
-    add_definitions("-fopenmp")
-    add_executable(hermite4_ispc 
-      ${ispc_obj}
-      ispc/hermite4.ispc
-      ispc/hermite4.cpp
-      ispc/omp_tasksys.cpp)
-    set_target_properties(hermite4_ispc PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
-    #    set(path
-    #  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/hermite4_ispc.dir)
-  #  set(ispc_path
-  #  ${CMAKE_CURRENT_BINARY_DIR}/ispc)
-  #  message("path= ${path}")
-  #  add_custom_command(
-  #  TARGET hermite4_ispc
-  #  PRE_LINK
-  #  COMMAND g++ -o hermite4_ispc.x    ${ispc_path}/hermite4.dev.o    ${path}/ispc/hermite4.cpp.o    ${path}/ispc/omp_tasksys.cpp.o    -fopenmp
-  #  DEPENDS  ${ispc_path}/hermite4.dev.o   ${path}/ispc/hermite4.cpp.o  ${path}/ispc/omp_tasksys.cpp.o  
-  #  COMMENT "Pre_link command")
-  endif()
-endif()
-
-if (ISPC_FOUND AND XEONPHI_FOUND)
-endif()
+#  if (True)
+#    icpc_sources(
+#      ispc/omp_tasksys.cpp
+#      ispc/hermite4.cpp
+#      COMPILE_FLAGS "-O3 -g -openmp")
+#    #  add_definitions("-fopenmp")
+#    icpc_add_executable(hermite4_ispc 
+#      ${ispc_obj}
+#      ispc/hermite4.ispc
+#      ispc/hermite4.cpp
+#      ispc/omp_tasksys.cpp
+#      LINK_FLAGS "-openmp")
+#  else()
+#    add_definitions("-fopenmp")
+#    add_executable(hermite4_ispc 
+#      ${ispc_obj}
+#      ispc/hermite4.ispc
+#      ispc/hermite4.cpp
+#      ispc/omp_tasksys.cpp)
+#    set_target_properties(hermite4_ispc PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
+#    #    set(path
+#    #  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/hermite4_ispc.dir)
+#  #  set(ispc_path
+#  #  ${CMAKE_CURRENT_BINARY_DIR}/ispc)
+#  #  message("path= ${path}")
+#  #  add_custom_command(
+#  #  TARGET hermite4_ispc
+#  #  PRE_LINK
+#  #  COMMAND g++ -o hermite4_ispc.x    ${ispc_path}/hermite4.dev.o    ${path}/ispc/hermite4.cpp.o    ${path}/ispc/omp_tasksys.cpp.o    -fopenmp
+#  #  DEPENDS  ${ispc_path}/hermite4.dev.o   ${path}/ispc/hermite4.cpp.o  ${path}/ispc/omp_tasksys.cpp.o  
+#  #  COMMENT "Pre_link command")
+#  endif()
+# ndif()
+# 
+# if (ISPC_FOUND AND XEONPHI_FOUND)
+# endif()
 
