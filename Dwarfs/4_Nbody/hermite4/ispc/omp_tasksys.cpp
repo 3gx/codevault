@@ -34,7 +34,7 @@
 
 #define DBG(x)
 #include <omp.h>
-#include <malloc.h>
+//#include <malloc.h>
 
 #include <stdio.h>
 #include <stdint.h>
