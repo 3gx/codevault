@@ -5,6 +5,7 @@
 #include <cstring>
 #include "parse_arguments.h"
 #include "plummer.h"
+#include "safe_printf.h"
 
 template<typename T>
 T square(T x) { return x * x ; }
@@ -41,35 +42,60 @@ struct Hermite4T
     Real gpot{0};
   };
 
-  struct Predictor
-  {
-    Real mass;
-    Real posx, posy, posz;
-    Real velx, vely, velz;
-    Predictor() {} 
-    Predictor(const Real dt, const Particle& p, const Force &f) noexcept
-    {
-      const auto dt2 = Real{1.0/2.0}*dt;
-      const auto dt3 = Real{1.0/3.0}*dt;
-      mass = p.mass;
-      posx = p.posx + dt*(p.velx + dt2*(f.accx + dt3*f.jrkx));
-      posy = p.posy + dt*(p.vely + dt2*(f.accy + dt3*f.jrky));
-      posz = p.posz + dt*(p.velz + dt2*(f.accz + dt3*f.jrkz));
-      velx = p.velx + dt*(f.accx + dt2* f.jrkx);
-      vely = p.vely + dt*(f.accy + dt2* f.jrky);
-      velz = p.velz + dt*(f.accz + dt2* f.jrkz);
-    }
-  };
-
   void set_eps(const Real eps) { eps_ = eps; }
   void set_eta(const Real eta) { eta_ = eta; }
 
   std::vector<Particle> ptcl_vec_;
-  std::vector<Predictor> pred_vec_;
-  std::vector<Force> force_vec_;
+  std::vector<Force> force_vec_, force_new_;
   
   Real time() const { return time_;}
   Real dt() const {return dt_;}
+  
+  void pp_force(Force& f, const Particle &pi, const Particle &pj)
+  {
+    const auto dx = pj.posx - pi.posx;
+    const auto dy = pj.posy - pi.posy;
+    const auto dz = pj.posz - pi.posz;
+    const auto r2 = dx*dx + dy*dy + dz*dz;
+    const auto ds2 = r2 + eps2_;
+
+    const auto  inv_ds  = rsqrt(ds2);
+    const auto  inv_ds2 = inv_ds * inv_ds;
+    const auto minv_ds  = inv_ds * pj.mass;
+    const auto minv_ds3 = inv_ds2 * minv_ds;
+
+    Force fi;
+
+    f.accx += minv_ds3*dx;
+    f.accy += minv_ds3*dy;
+    f.accz += minv_ds3*dz;
+    if (r2 > 0)
+      f.gpot -= minv_ds;
+
+    const auto dvx = pj.velx - pi.velx;
+    const auto dvy = pj.vely - pi.vely;
+    const auto dvz = pj.velz - pi.velz;
+
+    const auto rv = dx*dvx + dy*dvy + dz*dvz;
+
+    const auto Jij = Real{-3}*(rv*inv_ds2*minv_ds3);
+
+    f.jrkx += minv_ds3*dvx + Jij*dx;
+    f.jrky += minv_ds3*dvy + Jij*dy;
+    f.jrkz += minv_ds3*dvz + Jij*dz;
+  }
+
+  void compute_forces(std::vector<Force> &forces)
+  {
+    for (int i = 0; i < nbody_; i++)
+    {
+      const auto& pi = ptcl_vec_[i];
+      Force fi;
+      for (int j = 0; j < nbody_; j++)
+        pp_force(fi, pi, ptcl_vec_[j]);
+      forces[i] = fi;
+    }
+  }
 
   Hermite4T(const int nbody, const Real Q = 1.0, const Real eta = 0.1) : 
     nbody_(nbody), eta_(eta), eps_(4.0/nbody)
@@ -78,8 +104,8 @@ struct Hermite4T
     time_ = 0;
 
     ptcl_vec_.resize(nbody_);
-    pred_vec_.resize(nbody_);
     force_vec_.resize(nbody_);
+    force_new_.resize(nbody_);
 
     using namespace std;
 
@@ -99,139 +125,107 @@ struct Hermite4T
     }
 
     dt_ = Real{1.0e-4};
+
+    compute_forces(force_vec_);
   }
 
-  Force pp_force(const Force& f, const Predictor &pi, const Predictor &pj)
-  {
-    const auto dx = pj.posx - pi.posx;
-    const auto dy = pj.posy - pi.posy;
-    const auto dz = pj.posz - pi.posz;
-    const auto ds2 = dx*dx + dy*dy + dz*dz + eps2_;
-
-    const auto  inv_ds  = rsqrt(ds2);
-    const auto minv_ds  = pj.mass;
-    const auto  inv_ds2 = inv_ds * inv_ds;
-    const auto minv_ds3 = inv_ds2*minv_ds;
-
-    Force fi;
-
-    fi.accx = f.accx + minv_ds3*dx;
-    fi.accy = f.accy + minv_ds3*dy;
-    fi.accz = f.accz + minv_ds3*dz;
-    fi.gpot = f.gpot - minv_ds;
-
-    const auto dvx = pj.velx - pi.velx;
-    const auto dvy = pj.vely - pi.vely;
-    const auto dvz = pj.velz - pi.velz;
-
-    const auto rv = dx*dvx + dy*dvy + dz*dvz;
-
-    const auto Jij = Real{-3}*(rv*inv_ds2*minv_ds3);
-
-    fi.jrkx = f.jrkx + minv_ds3*dvx + Jij*dx;
-    fi.jrky = f.jrky + minv_ds3*dvy + Jij*dy;
-    fi.jrkz = f.jrkz + minv_ds3*dvz + Jij*dz;
-
-    return fi;
-  }
-
-  std::vector<Force> compute_forces(bool no_predictor = false)
-  {
-    if (no_predictor)
-    {
-      for (int i = 0; i < nbody_; i++)
-        pred_vec_[i] = Predictor(0, ptcl_vec_[i], force_vec_[i]);
-    }
-
-    std::vector<Force> forces(nbody_);
-
-    for (int i = 0; i < nbody_; i++)
-    {
-      const auto& pi = pred_vec_[i];
-      for (int j = 0; j < nbody_; j++)
-      {
-        forces[i] = pp_force(forces[i], pi, pred_vec_[j]);
-      }
-    }
-    return forces;
-  }
 
   void step()
   {
-    for (int i = 0; i < nbody_; ++i)
-      pred_vec_[i] = Predictor(dt_, ptcl_vec_[i], force_vec_[i]);
-
-    const auto&& forces_new = compute_forces();
-
-    const auto dt   = dt_;
-    const auto h    = Real{0.5}*dt;
-    const auto hinv = Real{1}/h;
-    const auto f1   = Real{0.5}*hinv*hinv;
-    const auto f2   = Real{3.0}*hinv*f1;
-
-    const auto dt2 = dt *dt * Real{1.0/2.0};
-    const auto dt3 = dt2*dt * Real{1.0/3.0};
-    const auto dt4 = dt3*dt * Real{1.0/4.0};
-    const auto dt5 = dt4*dt * Real{1.0/4.0};
-
-    Real dt_min = HUGE;
-    for (int i = 0; i < nbody_; ++i)
     {
-      /* interpolate snap & crackle */
-      const auto Amx = forces_new[i].accx - force_vec_[i].accx;
-      const auto Amy = forces_new[i].accy - force_vec_[i].accy;
-      const auto Amz = forces_new[i].accz - force_vec_[i].accz;
+      const auto dt  = dt_;
+      const auto dt2 = dt*Real{1.0/2.0};
+      const auto dt3 = dt*Real{1.0/3.0};
 
-      const auto Jmx = h*(forces_new[i].jrkx - force_vec_[i].jrkx);
-      const auto Jmy = h*(forces_new[i].jrky - force_vec_[i].jrky);
-      const auto Jmz = h*(forces_new[i].jrkz - force_vec_[i].jrkz);
-      
-      const auto Jpx = h*(forces_new[i].jrkx + force_vec_[i].jrkx);
-      const auto Jpy = h*(forces_new[i].jrky + force_vec_[i].jrky);
-      const auto Jpz = h*(forces_new[i].jrkz + force_vec_[i].jrkz);
+      for (int i = 0; i < nbody_; ++i)
+      {
+        auto& p = ptcl_vec_[i];
+        const auto& f = force_vec_[i];
 
-      auto snpx = f1 * Jmx;
-      auto snpy = f1 * Jmy;
-      auto snpz = f1 * Jmz;
+        p.posx += dt*(p.velx + dt2*(f.accx + dt3*f.jrkx));
+        p.posy += dt*(p.vely + dt2*(f.accy + dt3*f.jrky));
+        p.posz += dt*(p.velz + dt2*(f.accz + dt3*f.jrkz));
 
-      auto crkx = f2 * (Jpx - Amx);
-      auto crky = f2 * (Jpy - Amy);
-      auto crkz = f2 * (Jpz - Amz);
-
-      snpx -= h*crkx;
-      snpy -= h*crky;
-      snpz -= h*crkz;
-
-      /* correct position & velocity */
-
-      ptcl_vec_[i].posx += dt4*snpx + dt5*crkx;
-      ptcl_vec_[i].posy += dt4*snpy + dt5*crky;
-      ptcl_vec_[i].posz += dt4*snpz + dt5*crkz;
-
-      ptcl_vec_[i].velx += dt3*snpx + dt4*crkx;
-      ptcl_vec_[i].vely += dt3*snpy + dt4*crky;
-      ptcl_vec_[i].velz += dt3*snpz + dt4*crkz;
-
-      /* compute new time-step */
-
-      force_vec_[i] = forces_new[i];
-
-      const auto s0 = square(force_vec_[i].accx) + square(force_vec_[i].accy) + square(force_vec_[i].accz);
-      const auto s1 = square(force_vec_[i].jrkx) + square(force_vec_[i].jrky) + square(force_vec_[i].jrkz);
-      const auto s2 = snpx*snpx + snpy*snpy + snpz*snpz;
-      const auto s3 = crkx*crkx + crky*crky + crkz*crkz;
-
-      using std::sqrt;
-      using std::min;
-      const auto u = sqrt(s0*s2) + s1;
-      const auto l = sqrt(s1*s3) + s2;
-      assert(l > 0.0);
-      const auto dt_loc = eta_ * static_cast<Real>(sqrt(u/l));
-      dt_min = min(dt_min, dt_loc);
+        p.velx += dt*(f.accx + dt2*f.jrkx);
+        p.vely += dt*(f.accy + dt2*f.jrky);
+        p.velz += dt*(f.accz + dt2*f.jrkz);
+      }
     }
 
-    time_ += dt_;
-    dt_ = dt_min;
+    compute_forces(force_new_);
+
+    {
+      const auto dt   = dt_;
+      const auto h    = Real{0.5}*dt;
+      const auto hinv = Real{1}/h;
+      const auto f1   = Real{0.5}*hinv*hinv;
+      const auto f2   = Real{3.0}*hinv*f1;
+
+      const auto dt2 = dt *dt * Real{1.0/2.0};
+      const auto dt3 = dt2*dt * Real{1.0/3.0};
+      const auto dt4 = dt3*dt * Real{1.0/4.0};
+      const auto dt5 = dt4*dt * Real{1.0/5.0};
+
+      Real dt_min = HUGE;
+      for (int i = 0; i < nbody_; ++i)
+      {
+        /* interpolate snap & crackle */
+        const auto Amx = force_new_[i].accx - force_vec_[i].accx;
+        const auto Amy = force_new_[i].accy - force_vec_[i].accy;
+        const auto Amz = force_new_[i].accz - force_vec_[i].accz;
+
+        const auto Jmx = h*(force_new_[i].jrkx - force_vec_[i].jrkx);
+        const auto Jmy = h*(force_new_[i].jrky - force_vec_[i].jrky);
+        const auto Jmz = h*(force_new_[i].jrkz - force_vec_[i].jrkz);
+
+        const auto Jpx = h*(force_new_[i].jrkx + force_vec_[i].jrkx);
+        const auto Jpy = h*(force_new_[i].jrky + force_vec_[i].jrky);
+        const auto Jpz = h*(force_new_[i].jrkz + force_vec_[i].jrkz);
+
+        auto snpx = f1 * Jmx;
+        auto snpy = f1 * Jmy;
+        auto snpz = f1 * Jmz;
+
+        auto crkx = f2 * (Jpx - Amx);
+        auto crky = f2 * (Jpy - Amy);
+        auto crkz = f2 * (Jpz - Amz);
+
+        snpx -= h*crkx;
+        snpy -= h*crky;
+        snpz -= h*crkz;
+
+        /* correct position & velocity */
+
+        ptcl_vec_[i].posx += dt4*snpx + dt5*crkx;
+        ptcl_vec_[i].posy += dt4*snpy + dt5*crky;
+        ptcl_vec_[i].posz += dt4*snpz + dt5*crkz;
+
+        ptcl_vec_[i].velx += dt3*snpx + dt4*crkx;
+        ptcl_vec_[i].vely += dt3*snpy + dt4*crky;
+        ptcl_vec_[i].velz += dt3*snpz + dt4*crkz;
+
+        /* compute new time-step */
+
+        force_vec_[i] = force_new_[i];
+
+        const auto s0 = square(force_vec_[i].accx) + square(force_vec_[i].accy) + square(force_vec_[i].accz);
+        const auto s1 = square(force_vec_[i].jrkx) + square(force_vec_[i].jrky) + square(force_vec_[i].jrkz);
+        const auto s2 = snpx*snpx + snpy*snpy + snpz*snpz;
+        const auto s3 = crkx*crkx + crky*crky + crkz*crkz;
+
+        using std::sqrt;
+        using std::min;
+        const auto u = sqrt(s0*s2) + s1;
+        const auto l = sqrt(s1*s3) + s2;
+        assert(l > 0.0);
+        const auto dt_loc = eta_ * sqrt(u/l);
+        dt_min = min(dt_min, dt_loc);
+      }
+
+      time_ += dt_;
+      dt_ = 1.0;
+      while (dt_ > dt_min) dt_ *= 0.5;
+    }
   }
 
   double etot()
@@ -250,7 +244,7 @@ struct Hermite4T
 };
 
 template<typename Real>
-void run(const int nbody, const int nstep, const Real eta, const Real Q)
+void run(const int nbody, const Real t_end, const int dstep, const Real eta, const Real Q)
 {
   using namespace std;
   using Hermite4 = Hermite4T<Real>;
@@ -258,17 +252,30 @@ void run(const int nbody, const int nstep, const Real eta, const Real Q)
 
   h4.step();
 
+  auto etot0 = h4.etot();
   using _time = chrono::system_clock;
-  const auto etot0 = h4.etot();
 
   const auto start = _time::now();
-  for (int step = 0; step < nstep; step++)
+  auto step = 0;
+  auto etot_pre = etot0;
+  while (h4.time() < t_end)
   {
-    cerr << "  step= " << step << " out of " << nstep << ": t= " << h4.time() << "  dt= " << h4.dt() <<  endl;
+    if (step%dstep == 0)
+    {
+      const auto etot_post = h4.etot();
+      const auto de = etot0 - etot_post;
+      const auto dde = etot_post - etot_pre;
+      etot_pre = etot_post;
+      cerr << "  step= " << step << ": t= " << h4.time() << "  dt= " << h4.dt();
+      cerr << " | de= " << de << " d(de)= " << dde << endl;
+    }
     h4.step();
+    step++;
   }
   const auto end = _time::now();
   const auto elapsed = chrono::duration_cast<chrono::duration<double>>(end-start).count();
+
+  auto nstep = step;
 
   const auto etot1 = h4.etot();
 
@@ -288,38 +295,31 @@ int main(int argc, char *argv[])
   using namespace parse_arguments;
 
   auto nbodies = 1024;
-  auto nsteps  = 16;
-  auto eta     = 0.3;
+  auto t_end   = 1.0/16;
+  auto dstep   = 10;
+  auto eta     = 0.4;
   auto Q       = 1.0;
   auto fp32    = false;
-//  auto fileName = std::string{};
 
   auto param_pack = pack(argc, argv,
       param("number of bodies",     nbodies, "n", "nbodies"),
-      param("number of steps",      nsteps,  "s", "nsteps"),
+      param("integration time",     t_end,  "t", "tend"),
+      param("print output every # steps" , dstep, "s", "dstep"),
       param("accuracy parameter",   eta,     "e", "eta"),
       param("virial ratio",         Q,       "Q", ""),
       param("toggle single precision", fp32,   "",  "fp32")
-//      param("input filename" ,     fileName, 'f', "infile")
       );
 
-  cerr << param_pack.parse_all([](std::string s) { cerr << " --- test --- \n" << s; exit(2); });
-#if 0
-  if (!param_pack.parse())
-  {
-    cerr << param_pack.usage();
-    exit(-1);
-  }
-  cerr << param_pack.params();
-#endif
+  cerr << param_pack.parse_all();
 
   assert(nbodies > 1);
-  assert(nsteps > 0);
+  assert(t_end > 0);
   assert(eta > 0);
   assert(Q > 0);
 
+
   if (fp32)
-    run<float>(nbodies, nsteps, eta, Q);
+    run<float>(nbodies, t_end, dstep, eta, Q);
   else
-    run<double>(nbodies, nsteps, eta, Q);
+    run<double>(nbodies, t_end, dstep, eta, Q);
 }
