@@ -83,7 +83,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 # ==================================================================================================
 
 find_package(Common)
-find_package(ISPC QUIET)
+#find_package(ISPC QUIET)
 find_package(CUDA QUIET)
 find_package(MPI QUIET)
 find_package(OpenMP QUIET)

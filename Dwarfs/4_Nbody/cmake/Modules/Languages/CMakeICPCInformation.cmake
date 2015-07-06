@@ -13,6 +13,8 @@ INCLUDE(Platform/${CMAKE_SYSTEM_NAME}-${CMAKE_BASE_NAME} OPTIONAL)
 # But, it should still be after the platform file so changes can
 # be made to those values.
 
+# set(CMAKE_NEEDS_REQUIRES_STEP_ICPC_FLAG 1)   
+
 IF(CMAKE_USER_MAKE_RULES_OVERRIDE)
    INCLUDE(${CMAKE_USER_MAKE_RULES_OVERRIDE})
 ENDIF(CMAKE_USER_MAKE_RULES_OVERRIDE)
