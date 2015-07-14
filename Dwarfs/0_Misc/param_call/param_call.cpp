@@ -24,13 +24,17 @@ struct make_index_sequence_impl<0,S...>
 
 template<size_t I>
 using make_index_sequence = typename make_index_sequence_impl<I>::type;
+
+template<size_t I, typename Tuple>
+using tuple_element_t = typename tuple_element<I,Tuple>::type;
 #endif
+
 
 
 template<typename Functor, typename Tuple, size_t... I>
 void packCallImpl(Functor func, Tuple&& t, index_sequence<I...>)
 {
-  forward_as_tuple(func(I,forward<typename tuple_element<I,Tuple>::type>(get<I>(t)))...);
+  forward_as_tuple(func(I,forward<tuple_element_t<I,Tuple>>(get<I>(t)))...);
 }
 
 template<typename Functor, typename... Args>
