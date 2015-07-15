@@ -60,7 +60,7 @@ int main()
 #ifdef CXX14
   cout << "----------\n generic lambda \n";
   packCall(
-      [](auto i, auto x) {cout << "i= " << i << ": value= " << x << endl; return 0;},
+      [](auto i, auto&& x) {cout << "i= " << i << ": value= " << x << endl; return 0;},
   1.0,2.0,"std::string", -3);
 #endif
 }
