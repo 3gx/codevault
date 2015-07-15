@@ -148,7 +148,7 @@ typedef Quadrupole<float > fQuadrupole;
 typedef Multipole<double> dMultipole;
 typedef Multipole<float > fMultipole;
 
-  template<const bool ROOT>
+  template<const bool ROOT=true>
 dMultipole computeMultipole(const Particle::Vector &ptcl, const int addr = 0)
 {
   dMultipole multipole;

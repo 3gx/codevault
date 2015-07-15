@@ -441,7 +441,7 @@ struct Octree
 
   /**************/
 
-  template<const bool ROOT>  /* must be ROOT = true on the root node (first call) */
+  template<const bool ROOT=true>  /* must be ROOT = true on the root node (first call) */
     int sanity_check(const int addr = 0) const
     {
       int nb = 0;
@@ -487,7 +487,7 @@ struct Octree
 
   int nLeaf() const {return leafList_addr.size();}
   const Leaf& getLeaf(const int i) const {return leafList[i];}
-  template<const bool ROOT>  /* must be ROOT = true on the root node (first call) */
+  template<const bool ROOT=true>  /* must be ROOT = true on the root node (first call) */
     void buildLeafList(const int addr = 0) 
     {
       if (ROOT)
@@ -522,7 +522,7 @@ struct Octree
 
   /**************/
 
-  template<const bool SORT, const bool ROOT, const int N>  /* must be ROOT = true on the root node (first call) */
+  template<const bool SORT, const bool ROOT=true, const int N>  /* must be ROOT = true on the root node (first call) */
     void buildGroupList(std::vector< GroupT<N> > &groupList, 
         const int addr = 0) const
     {

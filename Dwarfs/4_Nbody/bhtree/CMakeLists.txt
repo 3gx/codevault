@@ -24,6 +24,7 @@ if (NOT CXX11)
 else (NOT CXX11)
   add_definitions(${CXX11_FLAGS} -Wall -Werror)
   add_executable(bhtree src/bhtree.cpp)
+  add_executable(bhtree_mod src/bhtree_mod.cpp)
 
   find_package(OpenMP)
 
