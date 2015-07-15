@@ -396,7 +396,7 @@ struct Octree
     return bnd;
   }
 
-  template<const bool ROOT>  /* must be ROOT = true on the root node (first call) */
+  template<const bool ROOT=true>  /* must be ROOT = true on the root node (first call) */
     Boundaries computeBoundaries(const int addr = 0)
     {
       Boundaries bnds;

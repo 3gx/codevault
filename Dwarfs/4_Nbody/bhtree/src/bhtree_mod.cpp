@@ -8,17 +8,12 @@
 enum {NGROUP = 96};
 typedef Octree::GroupT<NGROUP> octGroup;
 
-void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morton = false)
+void compute_gForce(const double theta, Particle::Vector &ptcl, bool verbose = true, bool dump_morton = false)
 {
   using namespace std;
 
   // Setup timer
   using _time = chrono::system_clock;
-  using _time_type = decltype(_time::now())
-  auto duration = [](_time_type t0, _time_type t1)
-  {
-    return chrono::duration_cast<duration<double>>(t1-t0).count();
-  };
 
 
   // Build octree
@@ -27,7 +22,7 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
   octBodies.clear();
   octBodies.reserve(n_bodies);
 
-  const auto t_bounding_box_beg = _time::now();
+  const auto t_build_tree_beg = _time::now();
   if (verbose)
     fprintf(stderr, " -- Build octree -- \n");
 
@@ -52,8 +47,6 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
   const int n_nodes = n_bodies;
   Octree tree(centre, size2, n_nodes, theta);
   
-  const double t20 = get_wtime();
-  fprintf(stderr, " -- Buidling octTree -- \n");
   for (int i = 0; i < n_bodies; i++)
   {
     tree.insert(octBodies[i]);
@@ -61,13 +54,13 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
   if (verbose)
     fprintf(stderr, "ncell= %d nnode= %d nleaf= %d n_nodes= %d  depth= %d np= %d\n",
         tree.get_ncell(), tree.get_nnode(), tree.get_nleaf(), n_nodes, tree.get_depth(), tree.get_np());
-
-  const auto t_bounding_box_end = _time::now();
+  const auto t_build_tree_end = _time::now();
 
   const auto t_boundaries_beg = _time::now();
   tree.computeBoundaries();
   if (verbose)
   {
+    const boundary root_innerBnd = tree.root_innerBoundary();
     fprintf(stderr, " rootBnd_inner= %g %g %g  size= %g %g %g \n",
         root_innerBnd.center().x,
         root_innerBnd.center().y,
@@ -102,16 +95,17 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
 
   const auto t_build_group_list_beg = _time::now();
   static octGroup::Vector groupList;
-  groupLeast.clear();
+  groupList.clear();
   groupList.reserve(tree.nLeaf());
   tree.buildGroupList</* SORT */ 0 ? true : false>(groupList);
+  const int ngroup = groupList.size();
   const auto t_build_group_list_end = _time::now();
 
 
   if (verbose)
     fprintf(stderr, " Computing multipole \n");
   const auto t_compute_multipole_beg = _time::now();
-  const Octree::dMultipole rootM = tree.computeMultipole(sortedPtcl);
+  const Octree::dMultipole rootM = tree.computeMultipole(ptcl);
   const auto t_compute_multipole_end = _time::now();
   if (verbose)
   {
@@ -130,7 +124,7 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
     
   if (verbose)
     fprintf(stderr, " Computing gForce \n");
-  const auto t_compute_force_beg = _time::now();
+  const auto t_compute_gforce_beg = _time::now();
   {
     real   gpot = 0.0;
     double mtot = 0.0;
@@ -169,13 +163,13 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
           mtot, fx/mtot, fy/mtot, fz/mtot, gpot/mtot);
     }
   }
+  const auto t_compute_gforce_end = _time::now();
 
-  const auto t_compute_force_end = _time::now();
-  const auto t_morton_dump_begin = get_wtime();
+  const auto t_reorder_beg = _time::now();
   {
     if (verbose)
-      fprintf(stderr, " -- Dump morton -- \n");
-    std::vector<int> morton_list;
+      fprintf(stderr, " --  Morton reorder -- \n");
+    static std::vector<int> morton_list;
     morton_list.reserve(n_bodies);
     tree.tree_dump<true>(morton_list);
     if (verbose)
@@ -184,10 +178,7 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
     for (std::vector<int>::iterator it = morton_list.begin(); it != morton_list.end(); it++)
       assert(*it < n_bodies);
     assert((int)morton_list.size() == n_bodies);
-  }
   
-  const auto t_order_beg = _time::now();
-  {
     if (verbose)
       fprintf(stderr, " -- Update order -- \n");
 
@@ -201,7 +192,27 @@ void compute_gForce(Particle::Vector &ptcl, bool verbose = true, bool dump_morto
     }
     swap(sortedPtcl,ptcl);
   }
-  const auto t_order_end = _time::now();
+  const auto t_reorder_end = _time::now();
+
+
+  if (verbose)
+  {
+    using _time_type = decltype(_time::now());
+    auto duration = [](const _time_type& t0, const _time_type& t1)
+    {
+      return chrono::duration_cast<chrono::duration<double>>(t1-t0).count();
+    };
+    fprintf(stderr, " Timing info: \n");
+    fprintf(stderr, " -------------\n");
+    fprintf(stderr, "   Tree:     %g sec \n", duration(t_build_tree_beg, t_build_tree_end));
+    fprintf(stderr, "   Boundary: %g sec \n", duration(t_boundaries_beg, t_boundaries_end));
+    fprintf(stderr, "   Sanity:   %g sec \n", duration(t_sanity_check_beg, t_sanity_check_end));
+    fprintf(stderr, "   LeafList: %g sec \n", duration(t_build_leaf_list_beg, t_build_leaf_list_end));
+    fprintf(stderr, "   GroupLst: %g sec \n", duration(t_build_group_list_beg, t_build_group_list_end));
+    fprintf(stderr, "   MultiP:   %g sec \n", duration(t_compute_multipole_beg, t_compute_multipole_end));
+    fprintf(stderr, "   gForce:   %g sec \n", duration(t_compute_gforce_beg, t_compute_gforce_end));
+    fprintf(stderr, "   Reorder:  %g sec \n", duration(t_reorder_beg, t_reorder_end));
+  }
 
 }
 
