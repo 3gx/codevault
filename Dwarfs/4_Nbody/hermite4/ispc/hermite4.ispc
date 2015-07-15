@@ -34,11 +34,11 @@
 #include "typeReal.h"
 
 
-typedef real<3> vec3;
+typedef Real<3> vec3;
 struct Force
 {
   vec3 acc, jrk;
-  real pot, null;
+  Real pot, null;
 };
 
 struct Predictor
@@ -51,36 +51,32 @@ void body_body_force(
     Force &fi,
     const Predictor &pi,
     const Predictor &pj,
-    const real mj,
-    const real eps2)
+    const Real mj,
+    const Real eps2)
 {
-  const real dx = pj.pos.x - pi.pos.x;
-  const real dy = pj.pos.y - pi.pos.y;
-  const real dz = pj.pos.z - pi.pos.z;
+  const Real dx = pj.pos.x - pi.pos.x;
+  const Real dy = pj.pos.y - pi.pos.y;
+  const Real dz = pj.pos.z - pi.pos.z;
 
-  const real ds2 = dx*dx + dy*dy + dz*dz + eps2;
+  const Real r2 =  dx*dx + dy*dy + dz*dz;
+  const Real ds2 = r2 + eps2;
 
-#if 1
-  const real  inv_ds  = rsqrt((float)ds2);
-#else
-  const real  inv_ds  = rsqrt(ds2);
-#endif
-  const real  inv_ds2 = inv_ds*inv_ds;
-  const real minv_ds  = inv_ds  * mj;
-  const real minv_ds3 = inv_ds2 * minv_ds;
-
+  const Real  inv_ds  = rsqrt(ds2);
+  const Real  inv_ds2 = inv_ds*inv_ds;
+  const Real minv_ds  = inv_ds  * mj;
+  const Real minv_ds3 = inv_ds2 * minv_ds;
 
   fi.acc.x += minv_ds3 * dx;
   fi.acc.y += minv_ds3 * dy;
   fi.acc.z += minv_ds3 * dz;
-  fi.pot   -= minv_ds;
+  fi.pot   -= minv_ds * (Real)(r2 > 0.0);
 
-  const real dvx = pj.vel.x - pi.vel.x;
-  const real dvy = pj.vel.y - pi.vel.y;
-  const real dvz = pj.vel.z - pi.vel.z;
-  const real rv  = dx*dvx + dy*dvy + dz*dvz;
+  const Real dvx = pj.vel.x - pi.vel.x;
+  const Real dvy = pj.vel.y - pi.vel.y;
+  const Real dvz = pj.vel.z - pi.vel.z;
+  const Real rv  = dx*dvx + dy*dvy + dz*dvz;
 
-  const real Jij = (real)(-3.0) * (rv * inv_ds2 * minv_ds3);
+  const Real Jij = (Real)(-3.0) * (rv * inv_ds2 * minv_ds3);
 
   fi.jrk.x += minv_ds3*dvx + Jij*dx;
   fi.jrk.y += minv_ds3*dvy + Jij*dy;
@@ -90,21 +86,21 @@ void body_body_force(
 task void compute_forces_task(
     uniform const int     n,
     uniform const int nPerTask,
-    uniform const real mass[],
-    uniform const real posx[],
-    uniform const real posy[],
-    uniform const real posz[],
-    uniform const real velx[],
-    uniform const real vely[],
-    uniform const real velz[],
-    uniform       real accx[],
-    uniform       real accy[],
-    uniform       real accz[],
-    uniform       real jrkx[],
-    uniform       real jrky[],
-    uniform       real jrkz[],
-    uniform       real gpot[],
-    const uniform real eps2)
+    uniform const Real mass[],
+    uniform const Real posx[],
+    uniform const Real posy[],
+    uniform const Real posz[],
+    uniform const Real velx[],
+    uniform const Real vely[],
+    uniform const Real velz[],
+    uniform       Real accx[],
+    uniform       Real accy[],
+    uniform       Real accz[],
+    uniform       Real jrkx[],
+    uniform       Real jrky[],
+    uniform       Real jrkz[],
+    uniform       Real gpot[],
+    const uniform Real eps2)
 {
   const uniform int nibeg = taskIndex * nPerTask;
   const uniform int niend = min(n, nibeg + nPerTask);
@@ -112,16 +108,16 @@ task void compute_forces_task(
   if (nibeg >= n)
     return;
 
-  uniform real shdata[7][programCount];
+  uniform Real shdata[7][programCount];
 
   assert((n%programCount) == 0);
 
   foreach (i = nibeg ... niend)
   {
     Force fi;
-    fi.acc = (real)0.0;
-    fi.jrk = (real)0.0;
-    fi.pot = (real)0.0;
+    fi.acc = (Real)0.0;
+    fi.jrk = (Real)0.0;
+    fi.pot = (Real)0.0;
 
     Predictor pi;
     pi.pos.x = posx[i];
@@ -151,7 +147,7 @@ task void compute_forces_task(
         pj.vel.x = shdata[4][j];
         pj.vel.y = shdata[5][j];
         pj.vel.z = shdata[6][j];
-        const real jmass  = shdata[3][j];
+        const Real jmass  = shdata[3][j];
         body_body_force(fi,pi,pj,jmass,eps2);
       }
     }
@@ -168,21 +164,21 @@ task void compute_forces_task(
 
 export void compute_forces(
     uniform const int     n,
-    uniform const real mass[],
-    uniform const real posx[],
-    uniform const real posy[],
-    uniform const real posz[],
-    uniform const real velx[],
-    uniform const real vely[],
-    uniform const real velz[],
-    uniform       real accx[],
-    uniform       real accy[],
-    uniform       real accz[],
-    uniform       real jrkx[],
-    uniform       real jrky[],
-    uniform       real jrkz[],
-    uniform       real gpot[],
-    const uniform real eps2)
+    uniform const Real mass[],
+    uniform const Real posx[],
+    uniform const Real posy[],
+    uniform const Real posz[],
+    uniform const Real velx[],
+    uniform const Real vely[],
+    uniform const Real velz[],
+    uniform       Real accx[],
+    uniform       Real accy[],
+    uniform       Real accz[],
+    uniform       Real jrkx[],
+    uniform       Real jrky[],
+    uniform       Real jrkz[],
+    uniform       Real gpot[],
+    const uniform Real eps2)
 {
   const uniform int nPerTask = min(128,programCount*8);
   const uniform int nTask = (n+nPerTask-1)/nPerTask;

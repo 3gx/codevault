@@ -253,6 +253,7 @@ lAtomicCompareAndSwapPointer(void **v, void *newValue, void *oldValue) {
 #endif // ISPC_IS_WINDOWS
 }
 
+#if 0
 static int32_t
 lAtomicCompareAndSwap32(volatile int32_t *v, int32_t newValue, int32_t oldValue) {
 #ifdef ISPC_IS_WINDOWS
@@ -263,6 +264,7 @@ lAtomicCompareAndSwap32(volatile int32_t *v, int32_t newValue, int32_t oldValue)
     return result;
 #endif // ISPC_IS_WINDOWS
 }
+#endif
 
 static inline int32_t
 lAtomicAdd(volatile int32_t *v, int32_t delta) {
