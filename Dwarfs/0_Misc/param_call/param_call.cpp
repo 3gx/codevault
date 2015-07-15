@@ -32,13 +32,13 @@ using tuple_element_t = typename tuple_element<I,Tuple>::type;
 
 
 template<typename Functor, typename Tuple, size_t... I>
-void packCallImpl(Functor func, Tuple&& t, index_sequence<I...>)
+void packCallImpl(Functor&& func, Tuple&& t, index_sequence<I...>)
 {
   forward_as_tuple(func(I,forward<tuple_element_t<I,Tuple>>(get<I>(t)))...);
 }
 
 template<typename Functor, typename... Args>
-void packCall(Functor func, Args&&... args)
+void packCall(Functor&& func, Args&&... args)
 {
   packCallImpl(func, forward_as_tuple(std::forward<Args>(args)...),make_index_sequence<sizeof...(Args)>());
 }
