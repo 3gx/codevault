@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 2.8.10 FATAL_ERROR)
-project(CodeVault)
+project(CodeVault NONE)
 
 set(CodeVault_VERSION_MAJOR 0)
 set(CodeVault_VERSION_MINOR 1)
 set(CodeVault_VERSION_PATCH 0)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
 enable_language (C)
 enable_language (CXX)
 
-include(detect_fortran_compiler)
-if (${Fortran_COMPILER_FOUND})
-  enable_language (Fortran)
-else(${Fortran_COMPILER_FOUND})
-  message(WARNING "*** Fortran is not found. Will not build Fortran examples")
-endif(${Fortran_COMPILER_FOUND})
+#include(detect_fortran_compiler)
+#if (${Fortran_COMPILER_FOUND})
+#  enable_language (Fortran)
+#else(${Fortran_COMPILER_FOUND})
+#  message(WARNING "*** Fortran is not found. Will not build Fortran examples")
+#endif(${Fortran_COMPILER_FOUND})
 
 
 # RPATH settings
@@ -48,9 +48,9 @@ endif()
 #    message(FATAL_ERROR "gfortran version must be at least 4.8")
 #  endif()
 
-message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
-message("CMAKE_Fortran_COMPILER_ID= ${CMAKE_Fortran_COMPILER_ID}")
-message("CMAKE_Fortran_COMPILER_NAMES= ${CMAKE_Fortran_COMPILER_NAMES}")
+#message("CMAKE_Fortran_COMPILER = ${CMAKE_Fortran_COMPILER}")
+#message("CMAKE_Fortran_COMPILER_ID= ${CMAKE_Fortran_COMPILER_ID}")
+#message("CMAKE_Fortran_COMPILER_NAMES= ${CMAKE_Fortran_COMPILER_NAMES}")
 #if (Fortran_COMPILER_NAME MATCHES "gfortran.*")
 #  # gfortran
 #  set (CMAKE_Fortran_FLAGS_RELEASE "-funroll-all-loops -fno-f2c -O3")
@@ -82,7 +82,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 
 # ==================================================================================================
 
-find_package(ISPC QUIET)
+find_package(Common)
+#find_package(ISPC QUIET)
 find_package(CUDA QUIET)
 find_package(MPI QUIET)
 find_package(OpenMP QUIET)
