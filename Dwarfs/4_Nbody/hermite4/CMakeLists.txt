@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 project(Hermite4 NONE)
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/../common.cmake)
+
 enable_language(CXX)
 
 include(CheckCXXCompilerFlag)
@@ -14,7 +16,7 @@ else (NOT CXX11)
   add_definitions(${CXX11_FLAGS} -Wall -Werror)
   add_executable(hermite4_serial hermite4_serial.cpp)
   
-  find_package(OpenMP QUIET)
+  find_package(OpenMP)
 
   if (NOT ${OPENMP_FOUND})
     message(WARNING "*** OpenMP is not support by compiler. Ignoring \"hermite4\" OpenMP examples")
@@ -25,7 +27,7 @@ else (NOT CXX11)
     add_executable(hermite4_omp hermite4_omp.cpp)
     set_target_properties(hermite4_omp PROPERTIES LINK_FLAGS "${OpenMP_CXX_FLAGS}")
   
-    find_package(ISPC QUIET)
+    find_package(ISPC)
     if (${ISPC_FOUND})
 
       # Build ISPC example
