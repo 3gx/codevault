@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <chrono>
+#include <vector>
+#include <cmath>
+#include <cassert>
 
 class Timer
 {
