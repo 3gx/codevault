@@ -8,6 +8,7 @@ class Timer
   private:
     using time_type = decltype(std::chrono::system_clock::now());
     std::string timer_;
+    bool verbose_destructor_value_{false};
     std::vector<time_type> tbeg_, tend_;
     double dtmin_, dtmax_, dtmean_, dtsigma_;
 
@@ -24,8 +25,12 @@ class Timer
       return std::chrono::duration_cast<std::chrono::duration<double>>(t1-t0).count();
     }
 
+
   public:
+    struct verbose_destructor {};
     Timer(std::string timer) : timer_(std::move(timer)) {}
+    Timer(std::string timer, verbose_destructor) : 
+      timer_(std::move(timer)), verbose_destructor_value_{true} {}
     void tbeg()
     {
       time_stamp(tbeg_);
@@ -74,5 +79,13 @@ class Timer
     double dtsigma() const
     {
       return dtsigma_;
+    }
+    ~Timer()
+    {
+      if (verbose_destructor_value_)
+      {
+        finalize();
+        print();
+      }
     }
 };
