@@ -4,6 +4,38 @@
 #include <functional>
 #include <iostream>
 
+/* Arguments parser: use in main
+ "
+ int main(int argc, char * argv[])
+ {
+   using namespace std;
+   using namespace parse_arguments;
+   auto param1 = <init_value>;
+   auto param2 = <init_value>;
+   ...
+   auto paramN = <init_value>;
+   
+   auto params = pack(argc, argv,
+       //       decription          value        -opt                  --option
+       param("param1 description", param1, "param1_short_opt", "param1_long_opt"),
+       param("param2 description", param2, "param2_short_opt", "param2_long_opt"),
+       ...
+       param("paramN description", paramN, "paramN_short_opt", "paramN_long_opt")
+       );
+
+   cerr << params.parse_all();
+   ...
+   <ensure that params are withing range>
+   if (within_range)
+   {
+      params.usage();
+      exit(-1);
+    }
+  }
+  "
+*/
+
+
 namespace parse_arguments
 {
   // -----------------------------
