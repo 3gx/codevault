@@ -93,9 +93,33 @@ class my_class_t
     }
 };
 
+class book_t
+{
+  public:
+  string name;
+    void draw(ostream& out, size_t position) const
+    {
+      out << string(position, ' ') << "book_t{" << name << "}" << endl;
+    }
+};
+class name_t
+{
+  public:
+  string name;
+    void draw(ostream& out, size_t position) const
+    {
+      out << string(position, ' ') << "name_t{" << name << "}" << endl;
+    }
+};
+
 int main()
 {
   document_t document;
+  document.emplace_back(my_class_t{});
+  document.emplace_back(book_t{"book1"});
+  document.emplace_back(name_t{"name1"});
+  document.emplace_back(book_t{"book2"});
+  document.emplace_back(name_t{"name2"});
   document.emplace_back(my_class_t{});
   draw(document,cout,0);
 }
