@@ -8,4 +8,5 @@ include_directories("../include")
 add_executable(copy-and-swap copy-and-swap.cpp)
 add_executable(singleton singleton.cpp)
 add_executable(multiple_factories multiple_factories.cpp)
+add_executable(type_erasure type_erasure.cpp)
 
