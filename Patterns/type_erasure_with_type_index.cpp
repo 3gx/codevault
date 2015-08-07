@@ -2,47 +2,14 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
+#include <unordered_map>
+#include <tuple>
 #include <memory>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-#if 0
-class object_t
-{
-  public:
-    virtual ~object_t() {}
-    virtual void draw(ostream&, size_t) const = 0;
-};
-
-using document_t = vector<shared_ptr<object_t>>;
-
-void draw(const document_t& x, ostream& out, size_t position)
-{
-  out << string(position, ' ') << "<document>" << endl;
-  for (const auto& e : x )
-    e->draw(out, position + 2);
-  out << string(position, ' ') << "</document>" << endl;
-}
-
-class my_class_t : public object_t
-{
-  public:
-    void draw(ostream &out, size_t position) const
-    {
-      out << string(position, ' ') << "my_class_t" << endl;
-    }
-};
-
-int main(int argc, char * argv[])
-{
-  document_t document;
-  document.emplace_back(new my_class_t{});
-  draw(document,cout, 1);
-  return 0;
-}
-#else
 class object_t
 {
   public:
@@ -81,6 +48,7 @@ class my_class_t
     {
       out << string(position, ' ') << "my_class_t" << endl;
     }
+    static string get_type() { return "my_class_t"; }
 };
 
 class book_t
@@ -91,6 +59,7 @@ class book_t
     {
       out << string(position, ' ') << "book_t{" << name << "}" << endl;
     }
+    static string get_type() { return "book_t"; }
 };
 class name_t
 {
@@ -100,27 +69,39 @@ class name_t
     {
       out << string(position, ' ') << "name_t{" << name << "}" << endl;
     }
+    static string get_type() { return "name_t"; }
 };
 
 
-using document_t = vector<object_t>;
+using document_t = vector<tuple<object_t,type_index>>;
+using document_types = unordered_map<type_index,string>;
 void draw(const document_t& x, ostream& out, size_t position)
 {
   out << string(position, ' ') << "<document>" << endl;
   for (const auto& e : x )
-    e.draw(out, position + 2);
+    get<0>(e).draw(out, position + 2);
   out << string(position, ' ') << "</document>" << endl;
+  out << string(position, ' ') << "<types>" << endl;
+  for (const auto& e : x )
+  {
+    auto&& type = get<1>(e);
+  }
+  out << string(position, ' ') << "</types>" << endl;
 }
 
+template<typename T>
+tuple<T,type_index> make_doc(T&& doc)
+{
+  return make_tuple(std::forward<T>(doc),type_index(typeid(T)));
+}
 int main()
 {
   document_t document;
-  document.emplace_back(my_class_t{});
-  document.emplace_back(book_t{"book1"});
-  document.emplace_back(name_t{"name1"});
-  document.emplace_back(book_t{"book2"});
-  document.emplace_back(name_t{"name2"});
-  document.emplace_back(my_class_t{});
+  document.emplace_back(make_doc(my_class_t{}));
+  document.emplace_back(make_doc(book_t{"book1"}));
+  document.emplace_back(make_doc(name_t{"name1"}));
+  document.emplace_back(make_doc(book_t{"book2"}));
+  document.emplace_back(make_doc(name_t{"name2"}));
+  document.emplace_back(make_doc(my_class_t{}));
   draw(document,cout,0);
 }
-#endif
