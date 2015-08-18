@@ -23,6 +23,10 @@ struct UnaryGate
   Unit* u0_;
   unique_ptr<Unit> utop_;
   virtual Unit* forward(Unit*) = 0;
+  virtual Unit* forward(Unit &u0)
+  {
+    return forward(&u0);
+  }
   virtual void backward() = 0;
 };
 struct BinaryGate 
@@ -30,6 +34,9 @@ struct BinaryGate
   Unit *u0_,*u1_;
   unique_ptr<Unit> utop_;
   virtual Unit* forward (Unit*, Unit*) = 0;
+  virtual Unit* forward (Unit &u0, Unit &u1)  {    return forward(&u0, &u1); }
+  virtual Unit* forward (Unit &u0, Unit *u1)  {    return forward(&u0,  u1); }
+  virtual Unit* forward (Unit *u0, Unit &u1)  {    return forward( u0, &u1); }
   virtual void backward() = 0;
 };
 
@@ -42,6 +49,7 @@ struct Multiply : BinaryGate
     utop_ = make_unit(u0_->value_ * u1_->value_, 0);
     return utop_.get();
   }
+  using BinaryGate::forward;
   virtual void backward() override
   {
     u0_->grad_ += u1_->value_ * utop_->grad_;
@@ -58,6 +66,7 @@ struct Add : BinaryGate
     utop_ = make_unit(u0_->value_ + u1_->value_,0);
     return utop_.get();
   }
+  using BinaryGate::forward;
   virtual void backward() override
   {
     u0_->grad_ += 1 * utop_->grad_;
@@ -94,17 +103,11 @@ int main(int argc, char * argv[])
 {
   using namespace std;
 
-  auto a0 = make_unit( 1,0);
-  auto b0 = make_unit( 2,0);
-  auto c0 = make_unit(-3,0);
-  auto x0 = make_unit(-1,0);
-  auto y0 = make_unit( 3,0);
-
-  auto a = a0.get();
-  auto b = b0.get();
-  auto c = c0.get();
-  auto x = x0.get();
-  auto y = y0.get();
+  auto a = Unit{ 1,0};
+  auto b = Unit{ 2,0};
+  auto c = Unit{-3,0};
+  auto x = Unit{-1,0};
+  auto y = Unit{ 3,0};
 
   auto mulg0 = Multiply{};
   auto mulg1 = Multiply{};
@@ -134,11 +137,11 @@ int main(int argc, char * argv[])
   mulg0.backward();
 
   auto step_size = 0.01;
-  a->value_ += step_size * a->grad_;
-  b->value_ += step_size * b->grad_;
-  c->value_ += step_size * c->grad_;
-  x->value_ += step_size * x->grad_;
-  y->value_ += step_size * y->grad_;
+  a.value_ += step_size * a.grad_;
+  b.value_ += step_size * b.grad_;
+  c.value_ += step_size * c.grad_;
+  x.value_ += step_size * x.grad_;
+  y.value_ += step_size * y.grad_;
 
   auto s1 = forwardNeuron();
   cout << "circuit output after one backprop: "  << s1->value_ << endl;
