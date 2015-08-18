@@ -121,7 +121,7 @@ int main(int argc, char * argv[])
     auto by      = mulg1.forward(b,y);       // b*y;
     auto axpby   = addg0.forward(ax,by);     // a*x + b*y
     auto axpbypc = addg1.forward(axpby,c);   // a*x + b*y + c
-    auto s       = sg0 .forward(axpbypc);   // sig(a*x + b*y + c);
+    auto s       = sg0  .forward(axpbypc);   // sig(a*x + b*y + c);
     return s;
   };
 
