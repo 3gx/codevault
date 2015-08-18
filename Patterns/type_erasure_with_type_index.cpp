@@ -75,6 +75,7 @@ class name_t
 
 using document_t = vector<tuple<object_t,type_index>>;
 using document_types = unordered_map<type_index,string>;
+
 void draw(const document_t& x, ostream& out, size_t position)
 {
   out << string(position, ' ') << "<document>" << endl;
@@ -82,10 +83,14 @@ void draw(const document_t& x, ostream& out, size_t position)
     get<0>(e).draw(out, position + 2);
   out << string(position, ' ') << "</document>" << endl;
   out << string(position, ' ') << "<types>" << endl;
+#if 0
   for (const auto& e : x )
   {
     auto&& type = get<1>(e);
+    string type_name;
+    out << string(position, ' ') << type << endl;
   }
+#endif
   out << string(position, ' ') << "</types>" << endl;
 }
 
