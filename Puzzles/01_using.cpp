@@ -2,7 +2,12 @@
 
 int main()
 {
+#ifndef PART2
   using namespace std;
+#else
+  using std::cout;
+  using std::endl;
+#endif
 
   cout << "Hello, puzzling world!" << endl;
 
