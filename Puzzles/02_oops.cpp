@@ -16,7 +16,12 @@ class Derived : public Base
   public:
     void func()
     {
-      Base:func();
+#if 1
+      Base:func();  
+#else  /* this is not Base::func() but Base: is a label */
+      Base:
+           func();
+#endif
       cout << "Derived's func() now runnign()\n";
     }
 };
