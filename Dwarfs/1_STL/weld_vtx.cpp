@@ -59,9 +59,6 @@ vector<size_t> weld_vertices(vector<Vertex> input)
 vector<Vertex> generate_triangulation(int n_vertices)
 {
   vector<Point> points(n_vertices);
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static)
-#endif
   for (int i = 0; i < n_vertices; ++i)
   {
     points[i] = Point(drand48(), drand48());
@@ -110,6 +107,12 @@ int main(int argc, char *argv[])
     cout << "\tNumber of vertices port triangulation: " << vertices.size() << endl;
     _timer.tbeg();
     auto indices = weld_vertices(vertices);
+    _timer.tend();
+    _timer.tbeg();
+    indices = weld_vertices(vertices);
+    _timer.tend();
+    _timer.tbeg();
+    indices = weld_vertices(vertices);
     _timer.tend();
     cout << "\tNumber of indices: " << indices.size() << endl;
   }
