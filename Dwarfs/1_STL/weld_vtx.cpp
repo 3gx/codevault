@@ -102,18 +102,16 @@ int main(int argc, char *argv[])
   auto vertices = generate_triangulation(n_vertices);
  
   { 
-    Timer _timer("weld_vertices",Timer::verbose_destructor{});
     cout << "Welding vertices... \n";
     cout << "\tNumber of vertices port triangulation: " << vertices.size() << endl;
-    _timer.tbeg();
     auto indices = weld_vertices(vertices);
-    _timer.tend();
-    _timer.tbeg();
-    indices = weld_vertices(vertices);
-    _timer.tend();
-    _timer.tbeg();
-    indices = weld_vertices(vertices);
-    _timer.tend();
+    Timer timer("weld_vertices",Timer::verbose_destructor{});
+    for (int i = 0; i < 5; i++)
+    {
+      timer.tbeg();
+      weld_vertices(vertices);
+      timer.tend();
+    }
     cout << "\tNumber of indices: " << indices.size() << endl;
   }
 
